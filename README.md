@@ -65,6 +65,41 @@ Then you can just run `pibox` from any project directory, optionally passing arg
 pibox --model llama3.1:8b
 ```
 
+## Skills
+
+### Global Skills
+
+Place skills in `data/skills/` to make them available across all projects. Skills are [Pi Agent Skills](https://agentskills.io/specification) packages that provide specialized capabilities.
+
+```bash
+# Create a skill
+cd data/skills
+mkdir my-skill
+cd my-skill
+
+# Create SKILL.md with name and description
+cat > SKILL.md << 'EOF'
+---
+name: my-skill
+description: What this skill does
+---
+
+# My Skill
+
+Usage instructions here...
+EOF
+```
+
+Available skills include:
+- [Pi Skills](https://github.com/badlogic/pi-skills) - Pre-built skills for common tasks
+- [Anthropic Skills](https://github.com/anthropics/skills) - Document processing, web search
+
+Create a custom skill by adding a `SKILL.md` file to `data/skills/`. Skills are loaded automatically and appear as `/skill:name` commands in the agent.
+
+### Project-Level Skills
+
+You can also add skills directly to your project in `.pi/skills/`. These are project-specific and take precedence over global skills.
+
 ## Environment Variables
 
 Environment variables are injected into the container via two mechanisms, both configured entirely within the `data/` directory and `.env` — no shell config or `docker` flags needed.
@@ -92,6 +127,8 @@ The container runs `pi` with a read-only filesystem, mounting:
 | `.env` | *(injected as `-e` flags)* | ro | Literal env vars for the container |
 | `data/models.json` | `/root/.pi/agent/models.json` | ro | Model/provider configuration |
 | `data/APPEND_SYSTEM.md` | `/root/.pi/agent/APPEND_SYSTEM.md` | ro | Additional system instructions |
+| `data/skills/` | `/root/.pi/agent/skills` | ro | Global skills directory |
+| `data/sessions/<hash>/` | `/root/.pi/agent` | rw | Pi agent state, sessions, and cache |
 
 | `data/sessions/<hash>/` | `/root/.pi/agent` | rw | Pi agent state, sessions, and cache |
 | `~/.gitconfig` | `/root/.gitconfig` | ro | Git credentials |
@@ -102,11 +139,13 @@ The container runs `pi` with a read-only filesystem, mounting:
 data.example/            # Copy to data/ and edit to get started
 ├── models.json          # Model & provider configuration
 ├── APPEND_SYSTEM.md     # Optional: additional system instructions
+├── skills/              # Global skills directory
 └── .env                 # Literal env vars template
 data/                    # Your working copy — edit these files
 ├── models.json          # Model & provider configuration
 ├── APPEND_SYSTEM.md     # Optional: additional system instructions
-.env                     # Literal env vars for the container
+├── skills/              # Global skills directory
+├── .env                 # Literal env vars for the container
 └── sessions/
     └── <hash>/          # Per-project session directory
         ├── sessions/

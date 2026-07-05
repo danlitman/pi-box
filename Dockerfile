@@ -1,9 +1,26 @@
 FROM node:24-bookworm-slim
 
-RUN apt-get update \
-  && apt-get install -y --no-install-recommends bash ca-certificates git gh ripgrep fd-find \
-  && rm -rf /var/lib/apt/lists/*
-
+RUN apt-get update
+RUN apt-get install -y --no-install-recommends \
+    bash \
+    ca-certificates \
+    curl \
+    wget \
+    jq \
+    tesseract-ocr \
+    git \
+    gh \
+    ripgrep \
+    fd-find \
+    poppler-utils \
+    ghostscript \
+    imagemagick \
+    ffmpeg \
+    libreoffice \
+    python3 \
+    python3-pip \
+    pandoc
+RUN rm -rf /var/lib/apt/lists/*
 RUN npm install -g --ignore-scripts @earendil-works/pi-coding-agent
 
 WORKDIR /workspace

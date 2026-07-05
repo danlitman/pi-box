@@ -29,6 +29,7 @@ run:
 	  -v "$$HOME/.gitconfig:/root/.gitconfig:ro" \
 	  -v "$(MAKEFILE_DIR)/data/models.json:/root/.pi/agent/models.json:ro" \
 	  -v "$(MAKEFILE_DIR)/data/APPEND_SYSTEM.md:/root/.pi/agent/APPEND_SYSTEM.md:ro" \
+	  -v "$(MAKEFILE_DIR)/data/skills:/root/.pi/agent/skills:ro" \
 	  -v "$(SESSION_DIR):/root/.pi/agent" \
 	  --read-only \
 	  --tmpfs /tmp:exec \
