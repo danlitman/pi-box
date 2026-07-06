@@ -2,11 +2,11 @@
 
 A secure, Docker-based sandbox for running [Pi Agent](https://github.com/earendil-works/pi) against your projects.
 
-Pi runs inside a read-only container with all dangerous capabilities dropped — it can read and write your code, stage and commit git changes, but cannot push, pull, merge, or reach the network except through explicitly configured APIs. All configuration (models, API keys, system instructions) lives in plain files you edit — no shell config, no docker flags, no secrets in environment variables on your host.
+Pi runs inside a read-only container with all dangerous capabilities dropped — it can read and write your code, stage and commit git changes, but cannot push, pull, or merge. It has full network access, but can only authenticate to the APIs you provide keys for via model configs and `.env` — no docker flags, no secrets in environment variables on your host.
 
 ## What it does
 
-- **Isolates the agent** in a container with a read-only filesystem and no network access
+- **Isolates the agent** in a container with a read-only filesystem and full network access (authenticates only to services you've provided keys for)
 - **Mounts your project** at `/projects/<name>` so the agent can read and write your code
 - **Manages sessions** per-project, preserving conversation history across runs
 - **Configures models** via a simple JSON file supporting OpenAI-compatible, Anthropic, Google, and other APIs
@@ -23,15 +23,15 @@ make run
 
 1. **Copy the example data:**
    ```bash
-   cp -r data.example/* data/
+   cp -r data.example/. data/
    ```
-   The `data.example/` directory contains everything you need — models config, system instructions, env var mappings, and more. Copy it to `data/` and edit to suit your setup. Files ending in `.example.md` are templates; rename them (e.g., `AGENTS.example.md` → `AGENTS.md`) when you want to use them.
+   The `data.example/` directory contains everything you need — models config, system instructions, env var mappings, and more. Copy it to `data/` and edit to suit your setup. Files ending in `.example.md` or `.env.example` are templates; rename them (e.g., `AGENTS.example.md` → `AGENTS.md`, `.env.example` → `.env`) when you want to use them.
 
 2. **Configure models** in `data/config/models.json`. This file is mounted read-only into the container at `/root/.pi/agent/models.json`. See the [Pi docs on custom models](https://github.com/earendil-works/pi) for supported APIs (OpenAI-compatible, Anthropic, Google, etc.).
 
 3. **Optionally add system instructions** in `data/config/APPEND_SYSTEM.md`. This file is mounted read-only into the container at `/root/.pi/agent/APPEND_SYSTEM.md`.
 
-4. **Set literal env vars** in `data/config/.env`. Add `KEY=VALUE` lines for variables you want injected directly into the container:
+4. **Set literal env vars** in `data/.env` (copy from `data.example/.env.example`). Add `KEY=VALUE` lines for variables you want injected directly into the container:
    ```
    OPENAI_API_KEY=sk-proj-...
    ANTHROPIC_API_KEY=sk-ant-...
@@ -97,25 +97,23 @@ Create a custom skill by adding a `SKILL.md` file to `data/config/skills/`. Skil
 
 ### Project-Level Skills
 
-You can also add skills directly to your project in `.pi/skills/`. These are project-specific and take precedence over global skills.
+Place skills in `data/projects/<project-safe-path>/skills/` (where `<project-safe-path>` is the sanitized repo path, e.g. `Users--yourname--code--myproject`). These are project-specific and take precedence over global skills.
 
 ## Environment Variables
 
-Environment variables are injected into the container via two mechanisms, both configured entirely within the `data/` directory — no shell config or `docker` flags needed.
+Environment variables are injected into the container via `data/.env` — no shell config or `docker` flags needed. Copy `data.example/.env.example` to `data/.env` and edit to add your variables.
 
-The Makefile reads `data/config/.env` and generates `docker -e` flags automatically:
+### `.env` — file-based injection
 
-### `.env` — literal values
-
-Add `KEY=VALUE` lines. The Makefile passes them directly as `-e KEY=VALUE` to Docker.
+Copy `data.example/.env.example` to `data/.env` and add `KEY=VALUE` lines. The Makefile passes this file to Docker via `--env-file`, which loads all variables into the container's environment:
 
 ```bash
-# data/config/.env
+# data/.env
 OPENAI_API_KEY=sk-proj-...
 ANTHROPIC_API_KEY=sk-ant-...
 ```
 
-Use this when you want to store secrets directly in the project. The values are injected as-is with the same variable name.
+Use this when you want to store secrets directly in the project. The variables are injected as-is with their original names.
 
 ## How it works
 
@@ -125,15 +123,14 @@ The container runs `pi` with a read-only filesystem, mounting:
 |-----------|---------------|------|---------|
 | `$(REPO_DIR)` | `/projects/<project>` | rw | Your project files |
 | `data/config/` | `/root/.pi/agent` | ro | All Pi config: models, settings, skills, extensions, prompts, themes, keybindings, trust decisions |
-| `data/projects/<hash>/` | `/root/.pi/agent/sessions` | rw | Pi agent sessions and per-project overrides |
-| `~/.gitconfig` | `/root/.gitconfig` | ro | Git credentials |
+| `data/projects/<project-safe-path>/` | `/root/.pi/agent/sessions` | rw | Pi agent sessions and per-project overrides |
 
 ## Folder structure
 
 ```
 data.example/            # Copy to data/ and edit to get started
+├── .env.example         # Literal env vars template
 ├── config/
-│   ├── .env             # Literal env vars template
 │   ├── models.json      # Model & provider configuration
 │   ├── settings.json    # Global Pi settings
 │   ├── AGENTS.example.md    # Global context file template
@@ -148,22 +145,31 @@ data.example/            # Copy to data/ and edit to get started
 │   ├── npm/             # npm pi packages
 │   └── git/             # Git pi packages
 data/                    # Your working copy — edit these files
+├── .env                 # Literal env vars (copy from .env.example)
 ├── config/              # Same structure as data.example/config/
-│   ├── skills/          # Global skills directory
-│   ├── extensions/      # Global extensions
-│   ├── prompts/         # Prompt templates
-│   ├── themes/          # Themes
-│   ├── npm/             # npm pi packages
-│   └── git/             # Git pi packages
+│   ├── models.json
+│   ├── settings.json
+│   ├── AGENTS.md
+│   ├── APPEND_SYSTEM.md
+│   ├── SYSTEM.md
+│   ├── keybindings.json
+│   ├── trust.json
+│   ├── skills/
+│   ├── extensions/
+│   ├── prompts/
+│   ├── themes/
+│   ├── npm/
+│   └── git/
 └── projects/
-    └── <hash>/          # Per-project session directory
+    └── <project-safe-path>/  # Per-project session directory (sanitized repo path)
         ├── sessions/    # JSONL session files
         │   └── <project-path>/
         │       └── <timestamp>_id.jsonl   # Session history
         ├── models.json  # Per-project model overrides
         ├── settings.json # Per-project settings overrides
         ├── APPEND_SYSTEM.md # Per-project system prompt append
-        └── auth.json    # Per-project auth tokens
+        ├── auth.json    # Per-project auth tokens
+        └── skills/      # Project-specific skills
 ```
 
 **Project directory naming:** The project directory name is the repo's absolute path with leading slashes stripped and slashes replaced with `--` (e.g., `/Users/daniel.litman/code/pi-box` becomes `Users--daniel.litman--code--pi-box`). This ensures sessions are project-isolated — each repository gets its own directory, and the same repo always maps to the same directory.

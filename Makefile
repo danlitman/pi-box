@@ -24,8 +24,7 @@ run:
 	  --env-file $(MAKEFILE_DIR)/data/.env \
 	  -v "$(REPO_DIR):/projects/$(PROJECT)" \
 	  -w "/projects/$(PROJECT)" \
-	  -v "$$HOME/.gitconfig:/root/.gitconfig:ro" \
-	  -v "$(MAKEFILE_DIR)/data/config:/root/.pi/agent" \
+	  -v "$(MAKEFILE_DIR)/data/config:/root/.pi/agent:ro" \
 	  -v "$(SESSION_DIR):/root/.pi/agent/sessions:rw" \
 	  --read-only \
 	  --tmpfs /tmp:exec \
