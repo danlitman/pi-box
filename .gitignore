@@ -1,3 +1,35 @@
+data/
 .idea
-data/*
+.idea/*
+*.swp
+*.swo
+*~
+
+# Docker
+.Dockerfile
+
+# Environment files (secrets)
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+*.code-workspace
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+*.log
+
+# Data directory exclusions
+# Keep example templates but ignore actual env/secrets
+/data/.env
+/data/.example/
+/data/projects/*/sessions/
+
+# OS files
+.DS_Store
+Thumbs.db
 
