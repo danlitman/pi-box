@@ -2,7 +2,7 @@
 
 A secure, Docker-based sandbox for running [Pi Agent](https://github.com/earendil-works/pi) against your projects.
 
-Pi runs inside a read-only container with all dangerous capabilities dropped — it can read and write your code, stage and commit git changes, but cannot push, pull, or merge. It has full network access, but can only authenticate to the APIs you provide keys for via model configs and `.env` — no docker flags, no secrets in environment variables on your host.
+Pi runs inside a read-only container with all dangerous capabilities dropped — it can read and write your code, stage and commit git changes. It has full network access, but can only authenticate to the APIs you provide keys for via model configs and `.env` — no docker flags, no secrets in environment variables on your host.
 
 ## What it does
 
