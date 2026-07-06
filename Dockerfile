@@ -26,7 +26,7 @@ RUN apt-get install -y --no-install-recommends \
     file \
     xxd
 RUN rm -rf /var/lib/apt/lists/*
-RUN npm install -g --ignore-scripts @earendil-works/pi-coding-agent
+RUN npm install -g --ignore-scripts @earendil-works/pi-coding-agent fallow
 
 WORKDIR /workspace
 ENTRYPOINT ["pi"]

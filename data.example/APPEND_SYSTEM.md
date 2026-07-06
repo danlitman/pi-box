@@ -12,3 +12,6 @@ If the message is a question (asking how/why/what, or for an explanation or opin
 ## Quality
 After any code change: run typecheck, lint, and tests. "Compiles + tests pass" is the only definition of done.
 Prefer the smallest change that solves the problem. State what a risky command will do before running it.
+
+## Code Security
+Use `fallow` to analyze code changes for problematic patterns, security issues, and unintended side effects. Run fallow before deploying or committing significant changes to catch potential issues.
