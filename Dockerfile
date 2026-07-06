@@ -16,10 +16,15 @@ RUN apt-get install -y --no-install-recommends \
     ghostscript \
     imagemagick \
     ffmpeg \
-    libreoffice \
     python3 \
     python3-pip \
-    pandoc
+    pandoc \
+    zip \
+    unzip \
+    tree \
+    procps \
+    file \
+    xxd
 RUN rm -rf /var/lib/apt/lists/*
 RUN npm install -g --ignore-scripts @earendil-works/pi-coding-agent
 
