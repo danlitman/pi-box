@@ -1,0 +1,16 @@
+{
+  "defaultProvider": "lm-studio",
+  "defaultModel": "qwen/qwen3.6-35b-a3b",
+  "defaultThinkingLevel": "medium",
+  "theme": "dark",
+  "compaction": {
+    "enabled": true,
+    "reserveTokens": 16384,
+    "keepRecentTokens": 20000
+  },
+  "retry": {
+    "enabled": true,
+    "maxRetries": 3
+  },
+  "lastChangelogVersion": "0.80.3"
+}
