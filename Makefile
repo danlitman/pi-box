@@ -1,4 +1,5 @@
-PI_IMAGE_NAME = pi-box
+PI_BASE_IMAGE_NAME = pi-box:latest
+PI_USER_IMAGE_NAME = pi-box:user-custom
 REPO_DIR ?= $(CURDIR)
 ARGS ?= -c
 PROJECT ?= $(notdir $(REPO_DIR))
@@ -16,7 +17,8 @@ SESSION_DIR := $(MAKEFILE_DIR)/data/projects/$(PROJECT_SAFE)
 ## Pi Agent
 
 build:
-	docker build -t $(PI_IMAGE_NAME) -f Dockerfile .
+	docker build -t $(PI_BASE_IMAGE_NAME) -f Dockerfile .
+	docker build -t $(PI_USER_IMAGE_NAME) -f data/Dockerfile .
 
 run:
 	@docker run --rm -it \
@@ -29,4 +31,4 @@ run:
 	  --read-only \
 	  --tmpfs /tmp:exec \
 	  --cap-drop=ALL --security-opt no-new-privileges \
-	  $(PI_IMAGE_NAME) $(ARGS)
+	  $(PI_USER_IMAGE_NAME) $(ARGS)
