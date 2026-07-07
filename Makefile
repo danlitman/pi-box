@@ -12,13 +12,20 @@ MAKEFILE_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 PROJECT_SAFE := $(shell echo "$(REPO_DIR)" | sed 's|^/*||; s|/|--|g')
 SESSION_DIR := $(MAKEFILE_DIR)/data/projects/$(PROJECT_SAFE)
 
-.PHONY: build run
+.PHONY: build run clean
 
 ## Pi Agent
 
 build:
+	@if [ ! -f "$(MAKEFILE_DIR)/data/.env" ]; then echo "ERROR: data/.env not found. Please copy from data.example/.env or create."; exit 1; fi
+	@if [ ! -f "$(MAKEFILE_DIR)/data/Dockerfile" ]; then echo "ERROR: data/Dockerfile not found. Please copy from data.example/Dockerfile or create."; exit 1; fi
+	@if [ ! -d "$(MAKEFILE_DIR)/data/config" ]; then echo "ERROR: data/config directory not found. Please create or copy from data.example/config/"; exit 1; fi
+	@if [ ! -d "$(MAKEFILE_DIR)/data/projects" ]; then echo "ERROR: data/projects directory not found. Please create or copy from data.example/projects/"; exit 1; fi
 	docker build -t $(PI_BASE_IMAGE_NAME) -f Dockerfile .
 	docker build -t $(PI_USER_IMAGE_NAME) -f data/Dockerfile .
+
+clean:
+	docker rmi -f $(PI_BASE_IMAGE_NAME) $(PI_USER_IMAGE_NAME)
 
 run:
 	@docker run --rm -it \

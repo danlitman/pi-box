@@ -27,6 +27,8 @@ make run
    ```
    The `data.example/` directory contains everything you need — models config, system instructions, env var mappings, and more. Copy it to `data/` and edit to suit your setup. Files ending in `.example.md` or `.env.example` are templates; rename them (e.g., `AGENTS.example.md` → `AGENTS.md`, `.env.example` → `.env`) when you want to use them.
 
+   **Also update the Dockerfile:** Copy `data.example/Dockerfile` to `data/Dockerfile` if you want to customize the container's base image or add dependencies. The example installs common tools (bash, git, ripgrep, python3, npm, etc.). Edit this file to add your custom packages or build steps.
+
 2. **Configure models** in `data/config/models.json`. This file is mounted read-only into the container at `/root/.pi/agent/models.json`. See the [Pi docs on custom models](https://github.com/earendil-works/pi) for supported APIs (OpenAI-compatible, Anthropic, Google, etc.).
 
 3. **Optionally add system instructions** in `data/config/APPEND_SYSTEM.md`. This file is mounted read-only into the container at `/root/.pi/agent/APPEND_SYSTEM.md`.
