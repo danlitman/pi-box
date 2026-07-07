@@ -56,7 +56,12 @@ To avoid typing `make run` every time, add this function to your shell startup s
 
 ```bash
 pibox() {
-  make -C ~/projects/pi-box run REPO_DIR="$(pwd)" ARGS="$*"
+  local target=run
+  if [ "$1" = "--edit" ]; then
+    target=edit
+    shift
+  fi
+  make -C ~/projects/pi-box "$target" REPO_DIR="$(pwd)" ARGS="$*"
 }
 ```
 
@@ -64,6 +69,12 @@ Then you can just run `pibox` from any project directory, optionally passing arg
 
 ```bash
 pibox --model llama3.1:8b
+```
+
+Pass `--edit` as the first argument to run in edit mode (mounts `data/config` read-write so Pi can modify its own config):
+
+```bash
+pibox --edit install npm:pi-web-access
 ```
 
 ## Skills
