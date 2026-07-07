@@ -135,8 +135,33 @@ The container runs `pi` with a read-only filesystem, mounting:
 | Host Path | Container Path | Mode | Purpose |
 |-----------|---------------|------|---------|
 | `$(REPO_DIR)` | `/projects/<project>` | rw | Your project files |
-| `data/config/` | `/root/.pi/agent` | ro | All Pi config: models, settings, skills, extensions, prompts, themes, keybindings, trust decisions |
+| `data/config/` | `/root/.pi/config-src` | ro | All Pi config: models, settings, skills, extensions, prompts, themes, keybindings, trust decisions |
 | `data/projects/<project-safe-path>/` | `/root/.pi/agent/sessions` | rw | Pi agent sessions and per-project overrides |
+
+### Config mounting (normal vs. edit mode)
+
+In **normal mode** (`make run`), your config is mounted **read-only** at
+`/root/.pi/config-src`, and `/root/.pi/agent` is an in-memory (`tmpfs`)
+directory that the entrypoint populates from that source at startup. This is
+required because Pi locks and writes `settings.json` while it runs (e.g. to load
+installed packages/skills) — a purely read-only config directory makes Pi fall
+back to *"No packages installed"*. Because the working copy is in-memory, any
+changes the agent makes to its own config are **ephemeral** and never reach the
+host.
+
+In **edit mode** (`make edit`), `data/config` is bind-mounted **read-write**
+directly at `/root/.pi/agent`, so changes persist to the host. Use this to
+install packages/skills or edit settings:
+
+```bash
+make edit ARGS="install npm:pi-web-access"
+```
+
+Installed npm packages (like `pi-web-access`) live in
+`data/config/npm/node_modules/`, and are registered in
+`data/config/settings.json` under `packages`. Skills bundled *inside* a package
+(declared via its `pi.skills` field) load from there — they do **not** appear in
+`data/config/skills/`, which is only for skills you author yourself.
 
 ## Folder structure
 

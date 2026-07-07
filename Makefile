@@ -4,9 +4,23 @@ REPO_DIR ?= $(CURDIR)
 ARGS ?= -c
 PROJECT ?= $(notdir $(REPO_DIR))
 
-# Mount mode for the agent config directory (data/config). Defaults to
-# read-only; override with `make run CONFIG_MODE=rw` to allow writes.
-CONFIG_MODE ?= ro
+# How the agent config directory (data/config) is exposed to the container.
+#
+# Normal mode (PI_EDIT unset): mount the host config read-only as a *source*
+# and give pi an in-memory (tmpfs) agent dir that the entrypoint populates from
+# it. pi can lock/write settings.json — required to load installed
+# packages/skills — but the agent's writes are ephemeral and never reach the
+# host.
+#
+# Edit mode (PI_EDIT=1, via `make edit`): bind-mount the host config read-write
+# so changes (installing packages/skills, editing settings) persist to the host.
+ifeq ($(PI_EDIT),1)
+AGENT_FLAGS = -v "$(MAKEFILE_DIR)/data/config:/root/.pi/agent:rw"
+else
+AGENT_FLAGS = -v "$(MAKEFILE_DIR)/data/config:/root/.pi/config-src:ro" \
+	--tmpfs /root/.pi/agent:exec \
+	-e PI_BOX_CONFIG_SRC=/root/.pi/config-src
+endif
 
 # Project data (sessions, per-project overrides) live relative to the
 # Makefile's location on the host, using a sanitized version of the repo
@@ -37,7 +51,7 @@ clean:
 # For normal use, prefer `make run` (config mounted read-only).
 edit:
 	@echo "WARNING: edit mode mounts data/config read-write. Only use it when using pi to modify its own config."
-	@$(MAKE) run CONFIG_MODE=rw ARGS="$(ARGS)"
+	@$(MAKE) run PI_EDIT=1 ARGS="$(ARGS)"
 
 run:
 	@docker run --rm -it \
@@ -46,7 +60,7 @@ run:
 	  -e npm_config_cache=/tmp/.npm \
 	  -v "$(REPO_DIR):/projects/$(PROJECT)" \
 	  -w "/projects/$(PROJECT)" \
-	  -v "$(MAKEFILE_DIR)/data/config:/root/.pi/agent:$(CONFIG_MODE)" \
+	  $(AGENT_FLAGS) \
 	  -v "$(SESSION_DIR):/root/.pi/agent/sessions:rw" \
 	  --read-only \
 	  --tmpfs /tmp:exec \
