@@ -30,6 +30,10 @@ MAKEFILE_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 PROJECT_SAFE := $(shell echo "$(REPO_DIR)" | sed 's|^/*||; s|/|--|g')
 SESSION_DIR := $(MAKEFILE_DIR)/data/projects/$(PROJECT_SAFE)
 
+# Only mount .git read-only if it exists on the host (e.g. submodules, worktrees, or repos
+# without a .git directory should not break).
+GIT_MOUNT := $(if $(wildcard $(REPO_DIR)/.git/),-v "$(REPO_DIR)/.git:/projects/$(PROJECT)/.git:ro",)
+
 .PHONY: build run run-edit clean
 
 ## Pi Agent
@@ -59,6 +63,7 @@ run:
 	  --env-file $(MAKEFILE_DIR)/data/.env \
 	  -e npm_config_cache=/tmp/.npm \
 	  -v "$(REPO_DIR):/projects/$(PROJECT)" \
+	  $(GIT_MOUNT) \
 	  -w "/projects/$(PROJECT)" \
 	  $(AGENT_FLAGS) \
 	  -v "$(SESSION_DIR):/root/.pi/agent/sessions:rw" \
